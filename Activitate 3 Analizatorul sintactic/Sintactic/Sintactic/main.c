@@ -11,8 +11,10 @@ int main() {
 	char* input = loadFile("1.q");
 	tokenize(input);
 	showTokens();
+	//showToken(53);
 	parse();
 	free(input);
+	
 	return 0;
 	
 }

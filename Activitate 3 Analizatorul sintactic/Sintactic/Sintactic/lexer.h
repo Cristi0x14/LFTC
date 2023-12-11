@@ -1,16 +1,15 @@
 #pragma once
 
 enum {
-	ID
-	// keywords
-	, TYPE_INT , TYPE_REAL, TYPE_STR, RETURN, END , WHILE , 
-		ELSE, IF, FUNCTION, VAR 
-	// delimiters
-	, COMMA, FINISH, LPAR, RPAR, SEMICOLON, COLON, LCPAR, RCPAR
-	// operators
-	, ADD, SUB, MUL ,DIV ,AND , OR ,NOT ,ASSIGN ,EQUAL , NOTEQ, LESS, GREATER, GREATEREQ,
-	// other
-	INT_LITERAL,REAL_LITERAL,STRING_LITERAL
+	ID, // Identificatori
+	VAR, FUNCTION, IF, ELSE, WHILE, END, RETURN,
+	TYPE_INT, TYPE_REAL, TYPE_STR, // Cuvinte cheie
+	INT_CONST, REAL_CONST, STR_CONST, // Constante
+	COMMA, COLON, SEMICOLON, LPAR, RPAR, FINISH, // Delimitatori
+	ADD, SUB, MUL, DIV, AND, OR, NOT, // Operatori
+	ASSIGN, EQUAL, NOTEQ, LESS, GREATER, GREATEREQ, 
+	SPACE, COMMENT ,
+	INT_VALUE,REAL_VALUE,STRING_VALUE
 };
 
 #define MAX_STR		127
@@ -31,3 +30,4 @@ extern int nTokens;
 
 void tokenize(const char* pch);
 void showTokens();
+void showToken(int i);

@@ -80,14 +80,6 @@ void tokenize(const char* pch) {
 			addTk(RPAR);
 			pch++;
 			break;
-		case '{':
-			addTk(LCPAR);
-			pch++;
-			break;
-		case '}':
-			addTk(RCPAR);
-			pch++;
-			break;
 		case '<':
 			addTk(LESS);
 			pch++;
@@ -119,7 +111,7 @@ void tokenize(const char* pch) {
 				pch++;
 			}
 			if (*pch == '"') {
-				tk = addTk(STRING_LITERAL);
+				tk = addTk(STRING_VALUE);
 				copyn(tk->text, start, pch);
 				pch++;
 			}
@@ -165,7 +157,7 @@ void tokenize(const char* pch) {
 						int PastDot = strtol(pch + 2, &end, 10);
 						sprintf(str, "%d.%d", intVal, PastDot);
 						realVal = strtod(str, &endptr);
-						tk = addTk(REAL_LITERAL);
+						tk = addTk(REAL_VALUE);
 
 						tk->r = realVal;
 						pch = end;
@@ -173,7 +165,7 @@ void tokenize(const char* pch) {
 					}
 					else
 					{
-						tk = addTk(INT_LITERAL);
+						tk = addTk(INT_VALUE);
 						tk->i = intVal;
 						pch = end;
 					}
@@ -195,6 +187,8 @@ void showTokens() {
 		switch (tk->code) {
 		case ID: printf("ID: %s\n", tk->text); break;
 		case TYPE_INT: printf("TYPE_INT\n"); break;
+		case TYPE_REAL: printf("TYPE_REAL\n"); break;
+		case TYPE_STR: printf("TYPE_STR\n"); break;
 		case COMMA: printf("COMMA\n"); break;
 		case COLON: printf("COLON\n"); break;
 		case FINISH: printf("FINISH\n"); break;
@@ -206,9 +200,9 @@ void showTokens() {
 		case GREATER: printf("GREATER\n"); break;
 		case GREATEREQ: printf("GREATEREQ\n"); break;
 		case SEMICOLON: printf("SEMICOLON\n"); break;
-		case INT_LITERAL: printf("INT:%d\n", tk->i); break;
-		case REAL_LITERAL: printf("REAL:%g\n", tk->r); break;
-		case STRING_LITERAL: printf("STR:%s\n", tk->text); break;
+		case INT_VALUE: printf("INT:%d\n", tk->i); break;
+		case REAL_VALUE: printf("REAL:%g\n", tk->r); break;
+		case STRING_VALUE: printf("STR:%s\n", tk->text); break;
 		case ADD: printf("ADD\n"); break;
 		case IF: printf("IF\n"); break;
 		case ELSE: printf("ELSE\n"); break;
@@ -217,8 +211,39 @@ void showTokens() {
 		case WHILE: printf("WHILE\n"); break;
 		case VAR: printf("VAR\n"); break;
 		case RETURN: printf("RETURN\n"); break;
-		case LCPAR: printf("{\n"); break;
-		case RCPAR: printf("}\n"); break;
 		}
+	}
+}
+
+void showToken(int i) {
+	Token* tk = &tokens[i];
+	printf("%d ", tk->line);
+	switch (tk->code) {
+	case ID: printf("ID: %s\n", tk->text); break;
+	case TYPE_INT: printf("TYPE_INT\n"); break;
+	case TYPE_REAL: printf("TYPE_REAL\n"); break;
+	case TYPE_STR: printf("TYPE_STR\n"); break;
+	case COMMA: printf("COMMA\n"); break;
+	case COLON: printf("COLON\n"); break;
+	case FINISH: printf("FINISH\n"); break;
+	case ASSIGN: printf("ASSIGN\n"); break;
+	case EQUAL: printf("EQUAL\n"); break;
+	case LPAR: printf("(\n"); break;
+	case RPAR: printf(")\n"); break;
+	case LESS: printf("LESS\n"); break;
+	case GREATER: printf("GREATER\n"); break;
+	case GREATEREQ: printf("GREATEREQ\n"); break;
+	case SEMICOLON: printf("SEMICOLON\n"); break;
+	case INT_VALUE: printf("INT:%d\n", tk->i); break;
+	case REAL_VALUE: printf("REAL:%g\n", tk->r); break;
+	case STRING_VALUE: printf("STR:%s\n", tk->text); break;
+	case ADD: printf("ADD\n"); break;
+	case IF: printf("IF\n"); break;
+	case ELSE: printf("ELSE\n"); break;
+	case FUNCTION: printf("FUNCTION\n"); break;
+	case END: printf("END\n"); break;
+	case WHILE: printf("WHILE\n"); break;
+	case VAR: printf("VAR\n"); break;
+	case RETURN: printf("RETURN\n"); break;
 	}
 }
