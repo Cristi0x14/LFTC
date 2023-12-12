@@ -7,9 +7,9 @@
 #include "parser.h"
 
 int iTk;
+int start;
 Token* consumed;
 
-// Function to report errors
 _Noreturn void tkerr(const char* fmt, ...) {
     fprintf(stderr, "error in line %d: ", tokens[iTk].line);
     va_list va;
@@ -20,7 +20,6 @@ _Noreturn void tkerr(const char* fmt, ...) {
     exit(EXIT_FAILURE);
 }
 
-// Function to consume tokens
 bool consume(int code) {
     if (tokens[iTk].code == code) {
         consumed = &tokens[iTk++];
@@ -29,21 +28,22 @@ bool consume(int code) {
     return false;
 }
 
-// Function to parse base types
 bool baseType() {
     if (consume(TYPE_INT)) {
         return true;
     }
-    if (consume(TYPE_REAL)) {
+    else if (consume(TYPE_REAL)) {
         return true;
     }
-    if (consume(TYPE_STR)) {
+    else if (consume(TYPE_STR)) {
         return true;
     }
+    tkerr("No base type found !");
+    return false;
 }
 
-// Function to parse variable declarations
 bool defVar() {
+    start = iTk;
     if (consume(VAR)) {
         if (consume(ID)) {
             if (consume(COLON)) {
@@ -67,11 +67,12 @@ bool defVar() {
             tkerr("Expected ID !");
         }
     }
+    iTk = start;
     return false;
 }
 
-// Function to parse function parameters
 bool funcParam() {
+    start = iTk;
     if (consume(ID)) {
         if (consume(COLON)) {
             if (baseType()) {
@@ -85,10 +86,10 @@ bool funcParam() {
             tkerr("Expected COLON after ID in function parameter");
         }
     }
+    iTk = start;
     return false;
 }
 
-// Function to parse function parameter list
 bool funcParams() {
     if (funcParam()) {
         while (consume(COMMA)) {
@@ -99,19 +100,19 @@ bool funcParams() {
         }
         return true;
     }
-    return true; // funcParams is optional
+    return true;
 }
 
 
-// Function to parse function definitions
 bool defFunc() {
+    start = iTk;
     if (consume(FUNCTION)) {
         if (consume(ID)) {
             if (consume(LPAR)) {
                 if (funcParams() && consume(RPAR)) {
                     if (consume(COLON)) {
                         if (baseType()) {
-                            while (defVar()) {} // Handle optional defVar*
+                            while (defVar()) {}
                             if (block()) {
                                 if (consume(END)) {
                                     return true;
@@ -144,49 +145,64 @@ bool defFunc() {
             tkerr("Expected ID after FUNCTION");
         }
     }
+    iTk = start;
     return false;
 }
 
 bool block() {
+    start = iTk;
     if (instr()) {
         return true;
     }
+    iTk = start;
     return false;
 }
 
 
 bool instr() {
+    start = iTk;
     if (consume(IF)) {
         if (consume(LPAR)) {
             if (expr()) {
                 if (consume(RPAR)) {
                     if (block()) {
                         if (consume(ELSE)) {
-                            block();
+                            if (!block()) {
+                                tkerr("Invalid ELSE block");
+                            }
                         }
                         if (consume(END)) {
                             return true;
                         }
+                        else {
+                            tkerr("Expected END of IF");
+                        }
+                    }
+                    else
+                    {   
+                        tkerr("Invlaid IF block");
                     }
                 }
+                else
+                {
+                    tkerr("Expected RPAR at end of IF");
+                }
+            }
+            else {
+                tkerr("Expected Expression inside IF");
             }
         }
-    }
-
-    else if (expr()) {
-        if (consume(SEMICOLON)) {
-            if (block()) {
-
-            }
-            return true;
+        else
+        {
+            tkerr("Expected LPAR after IF !");
         }
     }
-
     else if (consume(RETURN)) {
         if (expr()) {
             if (consume(SEMICOLON)) {
                 return true;
             }
+            tkerr("Expected SEMICOLON");
         }
     }
     else if (consume(WHILE)) {
@@ -197,38 +213,74 @@ bool instr() {
                         if (consume(END)) {
                             return true;
                         }
+
                     }
+                    tkerr("Invalid WHILE block");
+                }
+                else
+                {
+                    tkerr("Expected RPAR");
                 }
             }
+            else {
+                tkerr("Invalid While Expression");
+            }
+        }
+        else {
+            tkerr("Expected LPAR after WHILE");
         }
     }
+    else if (consume(SEMICOLON)) {
+        return true;
+    }
+    else if (expr()) {
+        if (consume(SEMICOLON)) {
+            if (block()) {
 
-    // Other instruction types handling
+            }
+            return true;
+        }
+        else {
+            tkerr("Expected SEMICOLON");
+        }
+    }
+    iTk = start;
     return false;
 }
 
 bool expr() {
+    start = iTk;
     if (exprLogic()) {
         return true;
     }
+    iTk = start;
     return false;
 }
 
-
 bool exprLogic() {
+    start = iTk;
     if (exprAssign()) {
-        while ((consume(AND) || consume(OR)) && exprAssign()) {
-
+        while ((consume(AND) || consume(OR)) ) {
+            exprAssign();
         }
 
         return true;
     }
+    iTk = start;
     return false;
 }
+
 bool exprAssign() {
+    start = iTk;
     if (consume(ID)) {
         if (consume(ASSIGN)) {
             if (consume(INT_VALUE)) {
+                return true;
+            }
+            else if (consume(REAL_VALUE)) {
+                return true;
+            }
+            else if (consume(STRING_VALUE)) {
                 return true;
             }
             if (!exprComp()) {
@@ -238,17 +290,19 @@ bool exprAssign() {
 
         }
         else if (consume(SEMICOLON)) {
-            iTk--;
+             iTk--;
             return true;
         }
     }
     if (exprComp()) {
         return true;
     }
+    iTk = start;
     return false;
 }
 
 bool exprComp() {
+    start = iTk;
     if (exprAdd()) {
         return true;
     }
@@ -257,26 +311,32 @@ bool exprComp() {
             return true;
         }
     }
+    iTk = start;
     return false;
 }
 
 bool exprAdd() {
+    start = iTk;
     if (exprMul()) {
         while (consume(ADD) || consume(SUB) && exprMul()) {}
         return true;
     }
+    iTk = start;
     return false;
 }
 
 bool exprMul() {
+    start = iTk;
     if (exprPrefix()) {
         while (consume(MUL) || consume(DIV) && exprPrefix()) {}
         return true;
     }
+    iTk = start;
     return false;
 }
 
 bool exprPrefix() {
+    start = iTk;
     if (consume(SUB) || consume(NOT)) {
         if (factor()) {
             return true;
@@ -285,44 +345,46 @@ bool exprPrefix() {
     if (factor()) {
         return true;
     }
+    iTk = start;
     return false;
 }
 
 bool factor() {
+    start = iTk;
     if (tokens[iTk].code == COMMA) {
         iTk--;
         return factor();
     }
-    else
-        if ((consume(INT_VALUE) || consume(REAL_VALUE) || consume(STRING_VALUE))) {
-            return true;
-        }
-        else if ((consume(LPAR) && expr() && consume(RPAR))) {
-            return true;
-        }
-        else if (consume(ID)) {
-            if (consume(LPAR)) {
-                if (expr()) {
+    else if ((consume(INT_VALUE) || consume(REAL_VALUE) || consume(STRING_VALUE))) {
+        return true;
+    }
+    else if ((consume(LPAR) && expr() && consume(RPAR))) {
+        return true;
+    }
+    else if (consume(ID)) {
+        if (consume(LPAR)) {
+            if (expr()) {
 
-                    while (consume(COMMA) && expr()) {}
-                }
-                if (consume(RPAR)) {
+                while (consume(COMMA) && expr()) {}
+            }
+            if (consume(RPAR)) {
 
-                    return true;
-                }
-                else {
-                    tkerr("\nMissing RPAR");
-                    return false;
-                }
+                return true;
             }
-            else if ((tokens[iTk - 2].code == LPAR)) {
-                if ((tokens[iTk].code == COMMA)) {
-                    while (consume(COMMA) && expr()) {}
-                    return true;
-                }
+            else {
+                tkerr("\nMissing RPAR");
+                return false;
             }
-            return true;
         }
+        else if ((tokens[iTk - 2].code == LPAR)) {
+            if ((tokens[iTk].code == COMMA)) {
+                while (consume(COMMA) && expr()) {}
+                return true;
+            }
+        }
+        return true;
+    }
+    iTk = start;
     return false;
 }
 
@@ -332,7 +394,6 @@ bool factor() {
 
 
 
-// Main parsing routine
 bool program() {
     for (;;) {
         if (defVar()) {}
@@ -358,7 +419,7 @@ void help() {
     showToken(iTk + 2);
     printf(" %d\n", iTk + 2);
 }
-// Function to start parsing
+
 void parse() {
     iTk = 0;
     program();
