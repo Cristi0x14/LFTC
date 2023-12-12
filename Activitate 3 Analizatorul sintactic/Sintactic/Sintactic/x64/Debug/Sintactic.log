@@ -1,2 +1,3 @@
-﻿  main.c
-  Sintactic.vcxproj -> C:\Users\crist\OneDrive\Desktop\GIT\LFTC\Activitate 3 Analizatorul sintactic\Sintactic\x64\Debug\Sintactic.exe
+﻿  parser.c
+C:\Users\crist\OneDrive\Desktop\GIT\LFTC\LFTC\Activitate 3 Analizatorul sintactic\Sintactic\Sintactic\parser.c(43): warning C4715: 'baseType': not all control paths return a value
+  Sintactic.vcxproj -> C:\Users\crist\OneDrive\Desktop\GIT\LFTC\LFTC\Activitate 3 Analizatorul sintactic\Sintactic\x64\Debug\Sintactic.exe

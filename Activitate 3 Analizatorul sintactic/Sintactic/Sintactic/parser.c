@@ -175,6 +175,9 @@ bool instr() {
 
     else if (expr()) {
         if (consume(SEMICOLON)) {
+            if (block()) {
+
+            }
             return true;
         }
     }
